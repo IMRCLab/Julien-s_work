@@ -1,0 +1,17 @@
+I made the systemtests folder of Crazyswarm. This folder contains scripts to automatically test the flight of our Crazyflies, both in real life and in simulation, and generate a PDF of the results. These tests can be ran manually through the CLI or activated remotely with Github actions. The PDF plots the actual trajectory of the crazyflie against the ideal trajectory it should follow (as well as other things). 
+
+The main script is called "test_flights.py". It uses pytest/unittest to automate the process in separate chunks (deleting and setting up results folder, running tests, saving and deleting logs, ...) and evaluate if tests were successful and subprocess' Popen constructor to start the crazyflie server, run example scripts and record them using ROSbags in python instead of in CLI.
+
+The basic idea of how the testing suite works is as follows : "test_flights.py" starts the crazyflie server, starts recording the /tf and /rosout topics of ROS in a ROSbag file (.mcap format) and flies a determined trajectory (for example figure8). The logs and ROSbag are saved in a "results" folder in the ros2_ws. Then "mcap_handler.py" takes the .mcap file and creates a .csv file out of it (containing timestamp, x, y and z positions from /tf and at the very end of the file there is a comment containing the timestamp of takeoff from /rosout). Then "plotter_class.py" creates a PDF with multiple plots from this csv file and saves it in the results folder. 
+
+If you want to manually run the systemtests, you can just run the test_flights.py script (add --sim if you want to use simulation). In crazyswarm2/.github/workflows there are also two workflow files for systemtests in real life and in simulation. These workflows can be triggered from the github page of IMRClab/crazyswarm2 through the actions button. They run the corresponding test on the workstation of the flightspace and upload the "results" folder so they're easily accessible. 
+
+Finally the crazyflie can also record data on an onboard SD card and broadcast it over radio. So  I added a feature where after a real-life flight, the computer downloads the SD data into the log folder and plots it too in a pdf called SDreport. This part is based on code written by Dennis (https://github.com/IMRCLab/crazyswarm2/tree/tune-lee/_experiments) and slightly modified. All of Dennis' code (plot.py, save.py, cfusdlog.py, data_helper.py) is in the SDplotting subfolder of systemtests. I honestly don't remember that well what was going on in there so I'll leave you the joy of understanding how it works by yourself. 
+
+
+There are currently two trajectories that test_flights.py supports : figure8 and multi_trajectory. I have commented out the second though because figure8 seems to be a sufficient test of reliability, and multi_trajectory has more uncertainty. Another thing : crazyswarm2 makes the Crazyflie fly a trajectory according to splines defined in a file saved as crazyswarm2/crazyflie_examples/data/figure8.csv but the plotter uses the file systemtests/figure8_ideal_traj.csv as "ideal trajectory". The reason for this discrepancy is that the file in crazyflie_examples does not include waypoints for the takeoff and landing and doesn't include the flying altitude, which is why I created the one in systemtests (which is the same as previous, but including takeoff and landing and with a fixed flying altitude of 1m).
+
+
+
+
+

@@ -1,0 +1,66 @@
+Crazyflie Bolt, compute module 4 and camera module 3 project : 
+
+Wolfgang wanted to build the Crazyflie Bolt experimental FPV from Crazyflie (see Bolt pdf). We have printed the frame and ordered the parts but some of them never arrived (sad, would have loved to build this thing). The purpose of the Bolt is to be able to carry the Compute Module 4, a powerful Raspberry Pi board-computer which would allow us to run more complicated software onboard then with the Crazyflie 2.0. 
+For this project to work we need to assemble the drone, but also to configure the Compute Module to work with the Camera Module 3 (also a Rasp-Pi product, let's call it Cam3) for the drone to be able to see anything. This was a side-project on which I did not spend a lot of time and the hours I did spend on were mostly being blocked in front of confusing error messages and reading very technical forum posts on similar-but-not-quite-the-same issues. Let's say I did not have a massive amount of success. 
+
+The Compute Module 4 (CM4) is a very compact and powerful system-on-module, but it only has two very specific input-output connectors which you cannot directly hook up to your computer (or about anything else). 
+To make prototyping and testing easier with the CM4, we can use the (very big) Compute Module IO Board which has USB, ethernet, HDMI, etc ports. We can plug a keyboard, mouse and screen and work directly on the CM4. But this IO Board sadly does NOT have a camera port compatible with the Camera Module 3 and more importantly it is huge and would never fit on the Bolt. This is why we also have the CM4-NANO-A interface board. It's a compact IO module that we will use to interface between the CM4 and the camera module, motors, radio, etc, and it has the correct port for the camera module 3. 
+But the NANO-A does NOT have an HDMI port, so we can't directly (keyboard, mouse, screen) interact with the CM4 while at the same having the camera module 3 plugged in. Very annoying I know (unless maybe there is an adapter from the camera port on the big IO board to the camera module 3 port ?). We thus need to connect and interact with our CM4 + NANO-A + Cam3 through SSH. To accomplish this we need to give ethernet connection to the CM4. We can use the USB port of the NANO-A with an ethernet-to-USB adapter (the one I used is marked adapter1 and has a proprietary IP adress, should be in the "adapters" box in the flight space).
+
+So that's my progress : CM4 + NANO-A + Cam3 with SSH. [Alternatively one could maybe also solder header pins on the NANO-A and try to interact with it through UART instead of SSH]
+
+All the above mentionned components (CM4, NANO-A, IO board, Cam3) as well as the printed frame and the power supply for the IO board should be in the box called "Board Computers" in the flight space.
+
+
+
+
+###notes on Raspberry Pi Compute module 4:
+I first tried to install Ubuntu 22.04 on the Pi CM4 by following the instructions from https://jamesachambers.com/full-compute-module-4-raspberry-pi-setup-imaging-guide/
+But after some time reading around forums it seemed like the combination of compute module 4 + Cam3 + ubuntu was very difficult, if not impossible to get to work. That's why I decided to try with the Raspberry Pi OS on the CM4. 
+### name under Ubuntu 22.04
+Name : bolt
+computer's name : computemodel4
+username : bolt
+password : pass1234
+
+
+
+######now I installed raspberry pi OS on CM4######
+name : bolt
+password : pass1234
+IP address of ethernet-USB adapter (adapter-1) if needed: 141.23.110.159
+
+
+I also typed these lines (only until cd CM4_dt_blob/ though) in from the CM4-NANO-A waveshare wiki :
+	    Configuration:
+	    Due to CSI and DSI being disabled by default, we need to load the device tree to enable, and I2C-10, I2C-11,
+	    and I2C-0 will be occupied when using the CSI camera and DSI screen.
+	    Enter the following command:
+
+		sudo apt-get install p7zip-full -y
+		wget https://files.waveshare.com/upload/4/41/CM4_dt_blob.7z
+		7z x CM4_dt_blob.7z -O./CM4_dt_blob
+		sudo chmod 777 -R CM4_dt_blob
+		cd CM4_dt_blob/
+		# If using two cameras and DSI1, execute
+		sudo  dtc -I dts -O dtb -o /boot/dt-blob.bin dt-blob-disp1-double_cam.dts
+		#When using any DSI, HDMI1 has no image output, even if you do not connect the DSI screen, as long as the corresponding file is compiled, then HDMI1 will not output.
+		#If you need to restore, delete the corresponding dt-blob.bin: sudo rm -rf /boot/dt-blob.bin
+		# After execution, turn off the power and restart the CM4.
+
+
+I have only worked some hours on this, but for the moment I have not been able to use the camera module 3, even with the raspberry pi OS. I still get the message saying no cameras are detected.
+
+
+
+
+Potentially useful links :
+https://www.raspberrypi.com/documentation/computers/compute-module.html#attach-a-raspberry-pi-camera-module
+https://cdn-shop.adafruit.com/product-files/4787/4787_cm4io-datasheet.pdf
+https://datasheets.raspberrypi.com/camera/camera-module-3-product-brief.pdf
+https://www.waveshare.com/cm4-nano-a.htm
+https://www.waveshare.com/wiki/CM4-NANO-A
+https://forums.raspberrypi.com/viewtopic.php?p=2209544#p2209544  (I posted that)
+https://forums.raspberrypi.com/viewtopic.php?t=362707
+https://forums.raspberrypi.com/viewtopic.php?t=349661
+https://raspberrypi.stackexchange.com/questions/128237/compute-module-4-and-camera-module-v2-1-how-to-configure

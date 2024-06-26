@@ -1,0 +1,6 @@
+Finally I also worked on infinite_flight. This is an idea from bitcraze (https://www.bitcraze.io/2023/07/the-infinite-flight/) that Wolfgang asked me to replicate.
+So I adapted the landing pad they propose to work with Amazon Basics charger we have (the 3d model of the landing pad can be found at https://github.com/IMRCLab/3dprinting/blob/main/models/induction%20landing%20pad_V3.stl ) and wrote  the script saved in crazyflie_examples/infinite_flight.py.
+
+This script simply makes the crazyflie make figure8 loops forever until it has low battery. It then attempts to land on the induction pad to recharge and take back off to fly figure 8s endlessly. If it doesn't detect the recharging, it will attempt to take off and land again forever until it lands correctly on the induction charger for it to charge (or until it crashes). 
+
+I have also made a prototype version of the infinite_flight script which automatically downloads the SDdata over radio when a crash is detected. This feature was however not finished before I left because I needed to integrate the download_uSD call in the python layer, which proved harder than I thought. There is still an open pull request called " Feature download usd python layer #520 " with the work-in-progress of the feature if anyone wants to finish it one day.

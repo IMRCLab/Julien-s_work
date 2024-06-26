@@ -1,0 +1,46 @@
+THOSE ARE SOME RANDOM NOTES I TOOK DURING THE PROJECT. FOR A DETAILED EXPLANATION AND ALL THE CODE AND FILES USED, PLEASE CHECK OUT : https://github.com/IMRCLab/Pololu_3pi-
+
+
+
+UART has to be 3.3V compatible to work with the Pololu 3pi+
+I can use PuTTY (available with apt-get) which is a terminal-emulator and serial console, to talk with the 3pi+ connected on USBC. Thonny also has a serial terminal so maybe PuTTY is useless ?
+I can edit python files directly through the USBC connection (not even using PuTTY). I can also use Thonny (or MU) with the thonny-pololu plugin. 
+MicroPython is a low-level implementation of Python 3 designed to be small and efficient to work on microcontrollers (it is actually written in C, and is able to understand a subset of the Python standard library).
+
+To start thonny I have to type ./thonny in directory /home/julien/.local/bin (would be cool to make it so that thonny is accessible from everywhere but whatever)
+
+Wolfgang says we could simply directly run the code from the summer school on the 3pi+ since it's python. Even without communication, for a test we could simply make the 3pi+ move one meter forward.
+Challenges : 
+1) Wolfgang said planner.py uses cvxpy (module for solving convex optimization problems) which can run on a raspberry pi but not on a microcontroller. And the controller_example.py uses planner.py so it can't work until that is solved
+2) several modules used in the code for state_estimation.py (or other parts) aren't available in micropython. But maybe there are replacements for these :
+numpy -> ulab ?
+threading.Timer -> Timer module (https://docs.micropython.org/en/latest/library/machine.Timer.html)
+motors imported from builhat python library -> "from pololu_3pi_2040_robot import robot" and then maybe robot.Motors() ???
+
+
+Installing Micropython packages on the 3pi+ :
+step 1 : install the micropython package on my machine https://www.youtube.com/watch?v=LngkFzQla-k    and        https://github.com/v923z/micropython-ulab
+step 2 : build the firmware and install it on the 3pi+ https://github.com/pololu/micropython-build/tree/9f9cc75
+
+
+
+Dimensions of Pololu 3pi+ : 
+	from one wheel extremity to the other 96mm. The wheel is 6.8mm thick and there is a ~1.5mm protrusion on the extremity of the shaft. So distance between the middle of both wheels should be approx 96-6.8-3 ≈ 86.2mm (unprecise)
+	wheel radius 16mm
+	
+	
+if __name__ == "__main__" doesn't seem to work on the 3pi+. We need to call main() directly or write everything as a script
+
+codebase for Wolgang's summer school with lego robots : http://modelai.gettysburg.edu/2024/collective/
+
+
+
+We can't use YAML because there is no YAML module on micropython. But we can use JSON and there are easy tools online to convert a file from YAML to JSON and vice versa if needed.
+
+Things of note / bugs :
+
+It happened two times that 3pi+ suddenly locked up its permissions and didn't allow me to modify, delete or add files (no write access). Using chmod command did not work as I got the response "read-only filesystem". The solution I found was updating the MicroPython firmware again (see 3pi+ user guide ; careful this will delete all custom files on the 3pi+) and then I could do chmod to get write access
+
+IMPORTANT : for some reason giving a positive speed to the motors makes them turn in the negative direction. To change this and make the speeds consistent with the worldframe of the state estimator, I changed "self._flip_left_motor" (and the right one) attribute to True in the "Micropython/pololu_3pi_2040_robot/motors.py" file of the robot. NB if the software is updated or anything of the sort, this attribute might have to be changed again.
+
+If a new file is created inside of the 3pi+ filesystem, there's a good chance it won't show up immediately. Restarting the robot generally makes it appear.
